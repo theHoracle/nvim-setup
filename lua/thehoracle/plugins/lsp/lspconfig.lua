@@ -4,15 +4,12 @@ return {
 	dependencies = {
 		"hrsh7th/cmp-nvim-lsp",
 		{ "antosha417/nvim-lsp-file-operations", config = true },
-		{ "folke/neodev.nvim", opts = {} },
-		{ "glepnir/lspsaga.nvim", branch = "main" },
+		{ "folke/lazydev.nvim", ft = "lua", opts = {} },
 	},
 	config = function()
 		-- import lspconfig plugin
-		local lspconfig = require("lspconfig")
 
 		-- import mason_lspconfig plugin
-		local mason_lspconfig = require("mason-lspconfig")
 
 		-- import cmp-nvim-lsp plugin
 		local cmp_nvim_lsp = require("cmp_nvim_lsp")
@@ -55,10 +52,14 @@ return {
 				keymap.set("n", "<leader>d", vim.diagnostic.open_float, opts) -- show diagnostics for line
 
 				opts.desc = "Go to previous diagnostic"
-				keymap.set("n", "[d", vim.diagnostic.goto_prev, opts) -- jump to previous diagnostic in buffer
+				keymap.set("n", "[d", function()
+					vim.diagnostic.jump({ count = -1, float = true })
+				end, opts) -- jump to previous diagnostic in buffer
 
 				opts.desc = "Go to next diagnostic"
-				keymap.set("n", "]d", vim.diagnostic.goto_next, opts) -- jump to next diagnostic in buffer
+				keymap.set("n", "]d", function()
+					vim.diagnostic.jump({ count = 1, float = true })
+				end, opts) -- jump to next diagnostic in buffer
 
 				opts.desc = "Show documentation for what is under cursor"
 				keymap.set("n", "K", vim.lsp.buf.hover, opts) -- show documentation for what is under cursor
@@ -71,88 +72,53 @@ return {
 		-- used to enable autocompletion (assign to every lsp server config)
 		local capabilities = cmp_nvim_lsp.default_capabilities()
 
-		-- Change the Diagnostic symbols in the sign column (gutter)
-		-- (not in youtube nvim video)
-		local signs = { Error = " ", Warn = " ", Hint = "󰠠 ", Info = " " }
-		for type, icon in pairs(signs) do
-			local hl = "DiagnosticSign" .. type
-			vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
-		end
-		mason_lspconfig.setup_handlers({
-			-- Default handler for most servers
-			function(server_name)
-				lspconfig[server_name].setup({
-					capabilities = capabilities,
-				})
+		vim.diagnostic.config({
+			signs = {
+				text = {
+					[vim.diagnostic.severity.ERROR] = "",
+					[vim.diagnostic.severity.WARN] = "",
+					[vim.diagnostic.severity.HINT] = "󰠠",
+					[vim.diagnostic.severity.INFO] = "",
+				},
+			},
+		})
+		vim.lsp.config("*", { capabilities = capabilities })
+		vim.lsp.config("rust_analyzer", { cmd = { "rust-analyzer" } })
+		vim.lsp.config("ts_ls", {
+			on_attach = function(client)
+				client.server_capabilities.documentFormattingProvider = false
 			end,
-
-			-- Svelte configuration
-			svelte = function()
-				lspconfig.svelte.setup({
-					capabilities = capabilities,
-					on_attach = function(client, _) -- Removed unused bufnr parameter
-						client.server_capabilities.semanticTokensProvider = nil
-					end,
-				})
+			settings = { completions = { completeFunctionCalls = true } },
+		})
+		vim.lsp.config("svelte", {
+			on_attach = function(client)
+				client.server_capabilities.semanticTokensProvider = nil
 			end,
-
-			-- Go configuration
-			gopls = function()
-				lspconfig.gopls.setup({
-					capabilities = capabilities,
-					settings = {
-						gopls = {
-							analyses = {
-								unusedparams = true,
-							},
-							staticcheck = true,
-							gofumpt = true,
-						},
+		})
+		vim.lsp.config(
+			"lua_ls",
+			{
+				settings = {
+					Lua = {
+						diagnostics = { globals = { "vim" } },
+						workspace = { checkThirdParty = false },
+						telemetry = { enable = false },
 					},
-				})
-			end,
-
-			-- Vue configuration
-			volar = function()
-				lspconfig.volar.setup({
-					capabilities = capabilities,
-					filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue" },
-					init_options = {
-						vue = {
-							hybridMode = false,
-						},
-					},
-				})
-			end,
-
-			-- TypeScript/React configuration
-			tsserver = function()
-				lspconfig.tsserver.setup({
-					capabilities = capabilities,
-					on_attach = function(client, _) -- Removed unused bufnr parameter
-						client.server_capabilities.documentFormattingProvider = false
-					end,
-					settings = {
-						completions = {
-							completeFunctionCalls = true,
-						},
-					},
-				})
-			end,
-
-			-- Lua configuration
-			lua_ls = function()
-				lspconfig.lua_ls.setup({
-					capabilities = capabilities,
-					settings = {
-						Lua = {
-							diagnostics = { globals = { "vim" } },
-							workspace = { checkThirdParty = false },
-							telemetry = { enable = false },
-						},
-					},
-				})
-			end,
+				},
+			}
+		)
+		vim.lsp.enable({
+			"ts_ls",
+			"pyright",
+			"rust_analyzer",
+			"lua_ls",
+			"html",
+			"cssls",
+			"tailwindcss",
+			"svelte",
+			"graphql",
+			"emmet_ls",
+			"prismals",
 		})
 	end,
 }

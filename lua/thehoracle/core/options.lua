@@ -39,3 +39,6 @@ opt.splitbelow = true
 
 -- turn off swapfile
 opt.swapfile = false
+
+-- Preserve filetype options when restoring sessions.
+opt.sessionoptions:append("localoptions")

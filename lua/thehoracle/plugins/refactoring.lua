@@ -1,23 +1,20 @@
 return {
 	"ThePrimeagen/refactoring.nvim",
-	dependencies = {
-		"nvim-lua/plenary.nvim",
-		"nvim-treesitter/nvim-treesitter",
-	},
+	dependencies = { "lewis6991/async.nvim" },
 	lazy = false,
 	config = function()
-		require("refactoring").setup({})
-
-		vim.keymap.set("x", "<leader>re", ":Refactor extract ")
-		vim.keymap.set("x", "<leader>rf", ":Refactor extract_to_file ")
-
-		vim.keymap.set("x", "<leader>rv", ":Refactor extract_var ")
-
-		vim.keymap.set({ "n", "x" }, "<leader>ri", ":Refactor inline_var")
-
-		vim.keymap.set("n", "<leader>rI", ":Refactor inline_func")
-
-		vim.keymap.set("n", "<leader>rb", ":Refactor extract_block")
-		vim.keymap.set("n", "<leader>rbf", ":Refactor extract_block_to_file")
+		local refactor = require("refactoring")
+		refactor.setup({})
+		for key, action in pairs({
+			re = "extract_func",
+			rf = "extract_func_to_file",
+			rv = "extract_var",
+			ri = "inline_var",
+			rI = "inline_func",
+		}) do
+			vim.keymap.set({ "n", "x" }, "<leader>" .. key, function()
+				return refactor[action]()
+			end, { expr = true, desc = "Refactor: " .. action })
+		end
 	end,
 }
