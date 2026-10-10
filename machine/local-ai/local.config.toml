@@ -1,0 +1,7 @@
+# Optional local profile; cloud defaults remain in config.toml.
+model = "local-dev"
+model_provider = "ollama"
+oss_provider = "ollama"
+model_context_window = 65536
+model_auto_compact_token_limit = 49152
+web_search = "disabled"
