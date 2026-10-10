@@ -58,3 +58,24 @@ Sources: [model](https://ollama.com/library/qwen3.5:9b-q4_K_M),
 [Hermes providers](https://hermes-agent.nousresearch.com/docs/integrations/providers).
 
 On the configured Mac, `local-ai-status` reports download/validation progress. The temporary finishing job is managed by launchd, resumes at login if needed, and removes its launch-agent file after successful validation. Its logs and measured results live in `~/.local/share/local-ai-setup/`.
+
+## Gemma comparison model
+
+Gemma 4 12B Q4_K_M (`gemma4:12b-it-q4_K_M`, about 8 GB) is queued after
+Qwen for download and validation. It uses the `gemma-dev` alias with a 65,536-token
+context. Both models remain on disk; Ollama loads only one at a time.
+Qwen remains the default. `local-ai-status` includes Gemma queue/check status.
+After validation, use `codex-gemma` or `ollama run gemma-dev`.
+The automatic comparison records a small TypeScript generation check, tool-call
+check, token throughput and model allocation at the same context, plus a Gemma
+Codex file-reading check. These are smoke checks, not a comprehensive model ranking.
+Results live in `~/.local/share/local-ai-setup/work/gemma/comparison.json`.
+
+To restore the extra model and command manually:
+
+```sh
+ollama pull gemma4:12b-it-q4_K_M
+ollama create gemma-dev -f Gemma.Modelfile
+cp codex-gemma ~/.local/bin/codex-gemma
+chmod +x ~/.local/bin/codex-gemma
+```

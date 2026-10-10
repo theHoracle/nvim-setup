@@ -23,3 +23,21 @@ else:
   progress=re.findall(r'pulling [^\n]+',tail)
   if progress:print('Current download layer: '+progress[-1])
  print('Setup checks: pending download completion')
+
+gemma=work.parent/'gemma/status.json'
+if gemma.exists():
+ data=json.loads(gemma.read_text());print('Gemma 4 12B: '+data['stage'])
+ if data['stage']=='downloading':
+  p=gemma.parent/'download.log'
+  if p.exists():
+   with p.open('rb') as f:
+    f.seek(max(0,p.stat().st_size-4096));tail=f.read().decode(errors='replace')
+   tail=re.sub(r'\x1b\[[0-?]*[ -/]*[@-~]','',tail)
+   progress=re.findall(r'pulling [^\n]+',tail)
+   if progress:print('Gemma download layer: '+progress[-1])
+ if data['stage']=='ready':
+  print('Ready: codex-gemma or ollama run gemma-dev')
+ if data['stage'] in ('ready','downloaded_checks_failed'):
+  for result in data.get('results',[]):
+   print(result['model']+': '+json.dumps(result))
+ if data.get('error'):print(data['error'])
