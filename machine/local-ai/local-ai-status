@@ -1,0 +1,25 @@
+#!/usr/bin/python3
+from pathlib import Path
+import json,re,urllib.request
+work=Path.home()/'.local/share/local-ai-setup/work/local-ai'
+try:
+ data=json.load(urllib.request.urlopen('http://127.0.0.1:11434/api/version',timeout=3))
+ print('Ollama: running (version '+data['version']+')')
+except Exception:print('Ollama: not reachable')
+status=work/'finish-status.json'
+if status.exists():
+ data=json.loads(status.read_text());print('Setup checks: '+('passed' if data['success'] else 'failed'))
+ if data['success']:
+  models=json.loads((work/'memory.json').read_text())['models']
+  if models:print('Loaded allocation during checks: %.1f GiB; context: 65536' % (models[0]['size']/1024**3))
+  print('Ready: codex-local or ollama run local-dev')
+ else:print('Details: '+str(work/'finish.log'))
+else:
+ p=work/'download.log'
+ if p.exists():
+  with p.open('rb') as f:
+   f.seek(max(0,p.stat().st_size-8192));tail=f.read().decode(errors='replace')
+  tail=re.sub(r'\x1b\[[0-?]*[ -/]*[@-~]','',tail)
+  progress=re.findall(r'pulling [^\n]+',tail)
+  if progress:print('Current download layer: '+progress[-1])
+ print('Setup checks: pending download completion')

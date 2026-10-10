@@ -56,3 +56,5 @@ Sources: [model](https://ollama.com/library/qwen3.5:9b-q4_K_M),
 [context sizing](https://docs.ollama.com/context-length),
 [Codex options](https://learn.chatgpt.com/docs/config-file/config-reference),
 [Hermes providers](https://hermes-agent.nousresearch.com/docs/integrations/providers).
+
+On the configured Mac, `local-ai-status` reports download/validation progress. The temporary finishing job is managed by launchd, resumes at login if needed, and removes its launch-agent file after successful validation. Its logs and measured results live in `~/.local/share/local-ai-setup/`.
